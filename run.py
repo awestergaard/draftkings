@@ -9,6 +9,14 @@ import multiprocessing
 import random
 import re
 
+rePattern = '(?P<name>.+?)\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t(?P<value>[^\t]+?)\t\$(?P<cost>[^\t]+?)\t.+'
+
+qbScoring = [0., 0., 0.05, 4., -1., 0., 0.13, 6., -1.]
+rbScoring = [0., 0.13, 6., 0., 0.13, 6., -1.]
+wrScoring = [0., 0.13, 6., 0., 0.13, 6., -1.]
+teScoring = [0., 0.13, 6., -1.]
+
+
 def rouletteWheel(selections, key=lambda weight: weight):
     if len(selections) == 0:
         print 'rouletteWheel: no selections'
@@ -23,7 +31,6 @@ def rouletteWheel(selections, key=lambda weight: weight):
     
     return selections[pick]
         
-
 class PlayerData:
     def __init__(self, name, value, cost):
         self.name = name
