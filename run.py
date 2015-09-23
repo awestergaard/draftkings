@@ -6,16 +6,16 @@ Created on Oct 19, 2014
 
 import itertools
 import multiprocessing
+import numpy
 import random
 import re
 
-rePattern = '(?P<name>.+?)\t[^\t]+\t[^\t]+\t[^\t]+\t[^\t]+\t(?P<value>[^\t]+?)\t\$(?P<cost>[^\t]+?)\t.+'
+rePattern = '(?P<name>\w+\s\w+?),\s\w+\t\w+\s\#\w+\t\w+\t\w+\s\w+\:\w+\t(?P<value>.+?)\t\$(?P<cost>[^\t]+?)\t.+'
 
 qbScoring = [0., 0., 0.05, 4., -1., 0., 0.13, 6., -1.]
 rbScoring = [0., 0.13, 6., 0., 0.13, 6., -1.]
 wrScoring = [0., 0.13, 6., 0., 0.13, 6., -1.]
 teScoring = [0., 0.13, 6., -1.]
-
 
 def rouletteWheel(selections, key=lambda weight: weight):
     if len(selections) == 0:
@@ -170,14 +170,21 @@ def selectRouletteCombo(args):
     return rouletteWheel(createAllTeamCombinations(qbs, rbs, wrs, tes, ds, 50000), key=lambda team: team.value())
     
 if __name__ == '__main__':
+    datafile = open('qbp.txt')
+    highs = [row for row in datafile]
+    highs = {re.match('(?P<name>\w+\s\w+?)\s', highs[22*i]).group('name') : [float(x) for x in highs[(22*i+3):(22*i+22):2]] for i in xrange(len(highs)/22)}
+    
     datafile = open('qb.txt')
     qbs = []
     for line in datafile:
-        results = re.match('(?P<name>.+?)\t.+?\t\d+\t\d+\t.+?\t(?P<value>.+?)\spts\t\$(?P<cost>.+?)\t.+', line)
+        results = re.match(rePattern, line)
         if results:
-            qbs.append(PlayerData(results.group('name'), 
-                                  float(results.group('value')), 
+            name = results.group('name')
+            highValue = numpy.dot(highs[name], qbScoring)
+            qbs.append(PlayerData(name, 
+                                  highValue, 
                                   int(results.group('cost').replace(',',''))))
+            
     qbs = sorted(qbs, key=lambda player: player.cost)
     cleanPlayers(qbs)
     
